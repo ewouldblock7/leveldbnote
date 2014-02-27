@@ -2,15 +2,15 @@ leveldb write merge实现（DBImpl::Write）
 ================================================================================
 
 Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
-### -----A begin-------
+// -----A begin-------  
   Writer w(&mutex_);  
   w.batch = my_batch;  
   w.sync = options.sync;  
   w.done = false;  
-### -----A end--------
+// -----A end  --------  
 
 
-### -----B begin-------  
+// -----B begin-------  
   MutexLock l(&mutex_);  
   writers_.push_back(&w);  
   while (!w.done && &w != writers_.front()) {  
@@ -19,7 +19,7 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
   if (w.done) {  
     return w.status;  
   }  
-### -----B end---------  
+// -----B end  -------  
 
   // May temporarily unlock and wait.  
   Status status = MakeRoomForWrite(my_batch == NULL);  
@@ -35,9 +35,9 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
     // and protects against concurrent loggers and concurrent writes  
     // into mem_.  
     {
-### -----C begin-------
+// -----C begin-------  
       mutex_.Unlock();  
-### -----C end-------
+// -----C end  -------  
       status = log_->AddRecord(WriteBatchInternal::Contents(updates));  
       if (status.ok() && options.sync) {  
         status = logfile_->Sync();  
@@ -45,16 +45,16 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
       if (status.ok()) {  
         status = WriteBatchInternal::InsertInto(updates, mem_);  
       }  
-### -----D begin-------  
+// -----D begin-------  
       mutex_.Lock();  
-### -----D end-------  
+// -----D end  -------  
     }  
     if (updates == tmp_batch_) tmp_batch_->Clear();  
 
     versions_->SetLastSequence(last_sequence);  
   }  
 
-### -----E begin-------  
+// -----E begin-------  
   while (true) {  
     Writer* ready = writers_.front();  
     writers_.pop_front();  
@@ -65,15 +65,15 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
     }  
     if (ready == last_writer) break;  
   }  
-### -----E end -------  
+// -----E end -------  
 
 
-### -----F begin-------  
+// -----F begin-------  
   // Notify new head of write queue  
   if (!writers_.empty()) {  
     writers_.front()->cv.Signal();  
   }  
-### -----F end-------  
+// -----F end-------  
 
   return status;  
 }
